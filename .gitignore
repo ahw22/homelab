@@ -1,25 +1,14 @@
-# Ignore everything
+# Ignore everything by default
 *
 
-# Allow all directories so Git can descend
-!*/
-
-# Allow docker-compose files anywhere
-!**/docker-compose.yml
-!**/docker-compose.yaml
-
-# Ignore compose backups
-**/docker-compose.yml.bak
-**/docker-compose.yaml.bak
-
-# Silence docker volume permission warnings
-pterodactyl/panel/db/
-onlyoffice-docserver/db/
-nextcloud/db/
-
-# Keep gitignore
+# Allow the .gitignore file itself
 !.gitignore
 
-# Hide all directories from status
-**/
+# Allow traversing ONLY top-level directories (e.g. ./authelia, ./traefik)
+# The matching */ only matches directories in the root.
+!*/
+
+# Inside those top-level directories, ONLY allow docker-compose files
+!/*/docker-compose.yml
+!/*/docker-compose.yaml
 
