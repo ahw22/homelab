@@ -1,0 +1,25 @@
+# Ignore everything
+*
+
+# Allow all directories so Git can descend
+!*/
+
+# Allow docker-compose files anywhere
+!**/docker-compose.yml
+!**/docker-compose.yaml
+
+# Ignore compose backups
+**/docker-compose.yml.bak
+**/docker-compose.yaml.bak
+
+# Silence docker volume permission warnings
+pterodactyl/panel/db/
+onlyoffice-docserver/db/
+nextcloud/db/
+
+# Keep gitignore
+!.gitignore
+
+# Hide all directories from status
+**/
+
