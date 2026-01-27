@@ -1,14 +1,13 @@
-# Ignore everything by default
+# Ignore everything
 *
 
-# Allow the .gitignore file itself
-!.gitignore
-
-# Allow traversing ONLY top-level directories (e.g. ./authelia, ./traefik)
-# The matching */ only matches directories in the root.
+# But descend into directories
 !*/
 
-# Inside those top-level directories, ONLY allow docker-compose files
+# Unignore docker-compose.yml in immediate subdirectories
 !/*/docker-compose.yml
 !/*/docker-compose.yaml
+
+# Allow the update script
+!update-all-compose.sh
 
