@@ -1,8 +1,11 @@
 # Ignore everything
 *
 
-# But descend into directories
-!*/
+# Allow .gitignore
+!.gitignore
+
+# But descend into immediate directories ONLY
+!/*/
 
 # Unignore docker-compose.yml in immediate subdirectories
 !/*/docker-compose.yml
