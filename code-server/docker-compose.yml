@@ -1,0 +1,36 @@
+---
+services:
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+      - PASSWORD=${PASSWORD} #optional
+      - HASHED_PASSWORD= #optional
+      - SUDO_PASSWORD=${PASSWORD} #optional
+      - SUDO_PASSWORD_HASH= #optional
+      - PROXY_DOMAIN=code-server.ahwz.dev #optional
+      - DEFAULT_WORKSPACE=/config/workspace #optional
+    volumes:
+      - /home/hazardoussheep/projects/code-server/config:/config
+    networks:
+      public:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.code-server.entrypoints=http"
+      - "traefik.http.routers.code-server.rule=Host(`code-server.ahwz.dev`)"
+      - "traefik.http.middlewares.code-server-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.code-server.middlewares=code-server-https-redirect"
+      - "traefik.http.routers.code-server-secure.entrypoints=https"
+      - "traefik.http.routers.code-server-secure.rule=Host(`code-server.ahwz.dev`)"
+      - "traefik.http.routers.code-server-secure.tls=true"
+      - "traefik.http.routers.code-server-secure.service=code-server"
+      - "traefik.http.services.code-server.loadbalancer.server.port=8443"
+      - "traefik.docker.network=public"
+    restart: unless-stopped
+
+networks:
+  public:
+    external: true

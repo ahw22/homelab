@@ -1,0 +1,62 @@
+---
+services:
+  ollama:
+    volumes:
+      - ollama:/root/.ollama
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    networks: 
+      - public
+    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
+    environment:
+      - TZ=Europe/Vienna
+      - OLLAMA_KEEP_ALIVE=10m
+      - OLLAMA_CONTEXT_LENGTH=12000
+
+  open-webui:
+    build:
+      context: .
+      args:
+        OLLAMA_BASE_URL: '/ollama'
+      dockerfile: Dockerfile
+    image: ghcr.io/open-webui/open-webui:${WEBUI_DOCKER_TAG-main}
+    container_name: open-webui
+    volumes:
+      - open-webui:/app/backend/data
+    depends_on:
+      - ollama
+    #ports:
+    #  - ${OPEN_WEBUI_PORT-3000}:8080
+    networks:
+      - public
+    environment:
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}'
+      - TZ=Europe/Vienna
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=public"
+      - "traefik.http.routers.openwebui.entrypoints=http"
+      - "traefik.http.routers.openwebui.rule=Host(`openwebui.ahwz.dev`)"
+      - "traefik.http.middlewares.openwebui-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.openwebui.middlewares=openwebui-https-redirect"
+      - "traefik.http.routers.openwebui-secure.entrypoints=https"
+      - "traefik.http.routers.openwebui-secure.rule=Host(`openwebui.ahwz.dev`)"
+      - "traefik.http.routers.openwebui-secure.tls=true"
+      - "traefik.http.routers.openwebui-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.openwebui-secure.service=openwebui"
+      - "traefik.http.services.openwebui.loadbalancer.server.port=8080"
+      - "traefik.http.routers.openwebui-secure.middlewares=authelia@docker"
+
+volumes:
+  ollama: {}
+  open-webui: {}
+
+networks:
+  public:
+    external: true

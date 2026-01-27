@@ -1,0 +1,47 @@
+---
+services:
+  traefik:
+    image: traefik:v3.6.5           
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "80:80"                    
+      - "443:443"                 
+      #- "8080:8080"              
+    networks:
+      - public                  
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}  
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - TRAEFIK_DASHBOARD_CREDENTIALS=${TRAEFIK_DASHBOARD_CREDENTIALS}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /home/hazardoussheep/projects/traefik/config/traefik.yml:/traefik.yml:ro 
+      - /home/hazardoussheep/projects/traefik/config/config.yml:/config.yml:ro 
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/certs/:/var/traefik/certs/:rw
+      - /home/hazardoussheep/projects/traefik/logs:/var/log/traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.ahwz.dev`)"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.ahwz.dev`)"
+      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].main=ahwz.dev"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.ahwz.dev"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.api.middlewares=authelia@docker"
+
+
+networks:
+  public:
+    external: true   

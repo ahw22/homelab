@@ -1,0 +1,31 @@
+secrets:
+  config_json:
+    file: secrets.json
+
+services:
+  foundry:
+    image: felddy/foundryvtt:13
+    container_name: foundry
+    hostname: foundry
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ~/projects/foundryvtt
+        target: /data
+    secrets:
+      - source: config_json
+        target: config.json
+    networks:
+      - public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.foundry.rule=Host(`foundry.ahwz.dev`)"
+      - "traefik.http.routers.foundry.entrypoints=https"
+      - "traefik.http.routers.foundry.tls=true"
+      - "traefik.http.routers.foundry.tls.certresolver=cloudflare"
+
+
+networks:
+  public:
+    external: true
+

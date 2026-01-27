@@ -1,0 +1,50 @@
+services:
+  rallly_db:
+    image: postgres:14.2
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=db
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rallly:
+    container_name: rallly
+    image: lukevella/rallly:latest
+    restart: always
+    depends_on:
+      - rallly_db
+    ports:
+      - 3000:3000
+    environment:
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@rallly_db/db
+    env_file:
+      - config.env
+    networks:
+      - public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rallly.entrypoints=http"
+      - "traefik.http.routers.rallly.rule=Host(`rallly.ahwz.dev`)"
+      - "traefik.http.middlewares.rallly-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.rallly.middlewares=rallly-https-redirect"
+      - "traefik.http.routers.rallly-secure.entrypoints=https"
+      - "traefik.http.routers.rallly-secure.rule=Host(`rallly.ahwz.dev`)"
+      - "traefik.http.routers.rallly-secure.tls=true"
+      - "traefik.http.routers.rallly-secure.service=rallly"
+      - "traefik.http.services.rallly.loadbalancer.server.port=3000"
+      - "traefik.docker.network=public"
+
+volumes:
+  db-data:
+    driver: local
+networks:
+  public:
+    external: true

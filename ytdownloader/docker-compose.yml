@@ -1,0 +1,30 @@
+---
+services:
+  youtube-dl:
+    image: "nbr23/youtube-dl-server:latest"
+    volumes:
+      - /home/hazardoussheep/projects/ytdownloader/downloads:/youtube-dl
+      - ./config.yml:/app_config/config.yml:ro # Overwrite the container's config file with your own configuration
+    restart: always
+    container_name: youtube-dl
+    networks:
+      - public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=public"
+      - "traefik.http.routers.youtube-dl.entrypoints=http"
+      - "traefik.http.routers.youtube-dl.rule=Host(`ytdownloader.ahwz.dev`)"
+      - "traefik.http.middlewares.youtube-dl-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.youtube-dl.middlewares=youtube-dl-https-redirect"
+      - "traefik.http.routers.youtube-dl-secure.entrypoints=https"
+      - "traefik.http.routers.youtube-dl-secure.rule=Host(`ytdownloader.ahwz.dev`)"
+      - "traefik.http.routers.youtube-dl-secure.tls=true"
+      - "traefik.http.routers.youtube-dl-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.youtube-dl-secure.service=youtube-dl"
+      - "traefik.http.services.youtube-dl.loadbalancer.server.port=8080"
+      - "traefik.http.routers.youtube-dl-secure.middlewares=authelia@docker"
+
+networks:
+  public:
+    external: true
+

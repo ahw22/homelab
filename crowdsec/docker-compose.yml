@@ -1,0 +1,35 @@
+---
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    environment:
+      GID: "${GID:-1000}"  # Changed to use default if env var not set
+    volumes:
+      - /home/hazardoussheep/projects/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+      - /home/hazardoussheep/projects/crowdsec/db:/var/lib/crowdsec/data/
+      - /home/hazardoussheep/projects/crowdsec/config:/etc/crowdsec/
+      - /home/hazardoussheep/projects/traefik/logs:/var/log/traefik/:ro
+    networks:
+      - public
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  bouncer-traefik:
+    image: docker.io/fbonalair/traefik-crowdsec-bouncer:latest
+    container_name: bouncer-traefik
+    environment:
+      CROWDSEC_BOUNCER_API_KEY: "${CROWDSEC_BOUNCER_API_KEY}"
+      CROWDSEC_AGENT_HOST: "${CROWDSEC_AGENT_HOST}"
+    networks:
+      - public
+    depends_on:
+      - crowdsec
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  public:
+    external: true
