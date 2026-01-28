@@ -4,6 +4,9 @@
 # Allow .gitignore
 !.gitignore
 
+# Whitelist readme
+!README.md
+
 # But descend into immediate directories ONLY
 !/*/
 
