@@ -1,6 +1,6 @@
 services:
   booklore:
-    image: booklore/booklore:latest
+    image: grimmory/grimmory:latest
     # Alternative: Use GitHub Container Registry
     # image: ghcr.io/booklore-app/booklore:latest
     container_name: booklore

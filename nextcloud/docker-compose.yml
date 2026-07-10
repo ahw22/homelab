@@ -12,6 +12,14 @@ services:
       - /home/hazardoussheep/projects/nextcloud/data:/data
     # - /home/hazardoussheep/youtube-dl:/youtube
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'       # never takes your whole machine
+          memory: 4G        # adjust to your available RAM
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     networks:
       - public
     labels:

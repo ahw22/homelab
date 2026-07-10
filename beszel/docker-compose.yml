@@ -1,0 +1,55 @@
+services:
+  beszel:
+    image: henrygd/beszel:latest
+    container_name: beszel
+    restart: unless-stopped
+    environment:
+      APP_URL: https://beszel.ahwz.dev
+    ports:
+      - 8090:8090
+    volumes:
+      - ./beszel_data:/beszel_data
+      - ./beszel_socket:/beszel_socket
+    networks:
+      - public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=public"
+      - "traefik.http.routers.beszel.entrypoints=http"
+      - "traefik.http.routers.beszel.rule=Host(`beszel.ahwz.dev`)"
+      - "traefik.http.middlewares.beszel-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.beszel.middlewares=beszel-https-redirect"
+      - "traefik.http.routers.beszel-secure.entrypoints=https"
+      - "traefik.http.routers.beszel-secure.rule=Host(`beszel.ahwz.dev`)"
+      - "traefik.http.routers.beszel-secure.tls=true"
+      - "traefik.http.routers.beszel-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.beszel-secure.service=beszel"
+      - "traefik.http.services.beszel.loadbalancer.server.port=8090"
+    healthcheck:
+       test: ['CMD', '/beszel', 'health', '--url', 'http://localhost:8090']
+       interval: 120s
+       start_period: 10s
+       timeout: 5s
+
+  beszel-agent:
+    image: henrygd/beszel-agent
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./beszel_agent_data:/var/lib/beszel-agent
+      # monitor other disks / partitions by mounting a folder in /extra-filesystems
+      # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
+    environment:
+      LISTEN: 45876
+      KEY: ${KEY}
+      TOKEN: ${TOKEN}
+      HUB_URL: http://localhost:8090
+    healthcheck:
+      test: ['CMD', '/agent', 'health']
+      interval: 120s
+    
+networks:
+  public:
+    external: true
